@@ -48,7 +48,7 @@ class NetRun:
                 if clp == self.flags[-1]:
                     raise Exception("too close")
                 self.flags.append(clp)
-        elif self.net_mode == 'equal_percent':
+        elif self.net_mode == 'equal_delta':
             pdel = (self.up_bound - self.low_bound) * 1.0 / self.net_num
             if pdel / self.up_bound - 0.0015 <= 0.001:
                 raise Exception("net too crowd")
