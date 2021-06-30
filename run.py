@@ -6,7 +6,7 @@ import math
 import time
 import logging as logger
 from strategy.logger import init_logger
-from strategy.net_v1 import NetRun
+from strategy.grid_v1 import GridRun
 from strategy.spot_client import BNClient
 import json
 import signal
@@ -24,8 +24,8 @@ def create_client(client_type, api_key, api_secret):
         return None
 
 def create_strategy(client, config):
-    if config['strategy_type'] == "net_v1":
-        return NetRun(client = client, config = config)
+    if config['strategy_type'] == "grid_v1":
+        return GridRun(client = client, config = config)
     else:
         logger.error("unsupport strategy type")
         return None

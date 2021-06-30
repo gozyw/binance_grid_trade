@@ -8,13 +8,13 @@ import json
 import signal
 
 
-class NetRun:
+class GridRun:
     def __init__(self, client, config):
         self.client = client
         self.low_bound = config.get('low_bound')
         self.up_bound = config.get('up_bound')
         self.total_cash = config.get('total_cash')
-        self.net_num = config.get('net_num')
+        self.grid_num = config.get('grid_num')
         self.target_symbol = config.get('target_symbol')
         self.base_symbol = config.get('base_symbol')
         self.strategy_id = config.get('strategy_id')
@@ -22,7 +22,7 @@ class NetRun:
         self.quantity_round_num = config.get('quantity_round_num')
         self.sell_greedy_x = config.get('sell_greedy_x', 1.0)
         self.buy_greedy_x = config.get('buy_greedy_x', 1.0)
-        self.net_mode = config.get('net_mode', 'equal_percent')
+        self.grid_mode = config.get('grid_mode', 'equal_percent')
         self.run_target = config.get('run_target', 'join')
         self.trade_symbol = self.target_symbol + self.base_symbol        
         cache_dir = os.path.abspath(os.path.join(os.path.dirname(
@@ -35,35 +35,35 @@ class NetRun:
             logger.info("quit strategy of %s", self.strategy_id)
             self.quit_all()
             return
-        if self.net_mode == 'equal_percent':
-            pper = math.pow(self.up_bound / self.low_bound, 1.0 / self.net_num)
+        if self.grid_mode == 'equal_percent':
+            pper = math.pow(self.up_bound / self.low_bound, 1.0 / self.grid_num)
             if pper - 0.0015 <= 1.001:
-                raise Exception("net too crowd")
+                raise Exception("grid too crowd")
             logger.info("gain per grid without trade fee: %s", pper)
             fp = self.low_bound
             self.flags = [round(fp, self.price_round_num)]
-            for i in range(self.net_num):
+            for i in range(self.grid_num):
                 fp = fp * pper
                 clp = round(fp, self.price_round_num)
                 if clp == self.flags[-1]:
                     raise Exception("too close")
                 self.flags.append(clp)
-        elif self.net_mode == 'equal_delta':
-            pdel = (self.up_bound - self.low_bound) * 1.0 / self.net_num
+        elif self.grid_mode == 'equal_delta':
+            pdel = (self.up_bound - self.low_bound) * 1.0 / self.grid_num
             if pdel / self.up_bound - 0.0015 <= 0.001:
-                raise Exception("net too crowd")
+                raise Exception("grid too crowd")
             fp = self.low_bound
             self.flags = [round(fp, self.price_round_num)]
-            for i in range(self.net_num):
+            for i in range(self.grid_num):
                 fp = fp + self.pdel
                 clp = round(fp, self.price_round_num)
                 if clp == self.flags[-1]:
                     raise Exception("too close")
                 self.flags.append(clp)
         else:
-            raise Exception("unsupport net mode %s" % (self.net_mode))
-        logger.info('all flag:%s net_num %s', self.flags, self.net_num)
-        self.cash_per_flag = self.total_cash / self.net_num
+            raise Exception("unsupport grid mode %s" % (self.grid_mode))
+        logger.info('all flag:%s grid_num %s', self.flags, self.grid_num)
+        self.cash_per_flag = self.total_cash / self.grid_num
         self.last_open_orders = self.load_orders()
         self.remote_open_orders = self.get_open_orders()
         rid = set([s['clientOrderId'] for s in self.remote_open_orders])
@@ -179,7 +179,7 @@ class NetRun:
         return rep
         
     def init_order(self):
-        for fid in range(self.net_num):
+        for fid in range(self.grid_num):
             fp = round(self.flags[fid] * self.buy_greedy_x, self.price_round_num)
             logger.info('init order of %s', self.flags[fid])
             qua = round(self.cash_per_flag / fp, self.quantity_round_num)
@@ -245,7 +245,7 @@ class NetRun:
                 self.save_total_gain()
         self.last_open_orders = new_last_open_orders
         self.save_last_open_orders()
-        if len(self.load_orders()) == self.net_num:
+        if len(self.load_orders()) == self.grid_num:
             return
         self.last_open_orders = self.load_orders()
         id_orders = {}
@@ -257,7 +257,7 @@ class NetRun:
                 id_orders[i] = [od]
             else:
                 id_orders[i].append(od)
-        for i in range(self.net_num):
+        for i in range(self.grid_num):
             if i in id_orders:
                 has_buy = False
                 for od in id_orders[i]:
