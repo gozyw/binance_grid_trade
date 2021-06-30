@@ -1,0 +1,21 @@
+{
+    "api_key": "your api key",
+    "api_secret": "your api secret",
+    "strategy": [{
+        "strategy_id": "test02",
+        "low_bound": 0.23,
+        "up_bound": 0.3,
+        "total_cash": 35,
+        "net_num": 3,
+        "target_symbol": "ATA",
+        "base_symbol": "USDT",
+        "price_round_num": 5,
+        "quantity_round_num": 0,
+        "sell_greedy_x": 1.0033,
+        "buy_greedy_x": 1.0,
+        "net_mode": "equal_percent",
+        "run_target": "quit",
+        "client_type" : "spot",
+        "strategy_type" : "net_v1"
+    }]
+}
