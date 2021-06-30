@@ -1,7 +1,7 @@
 # binance_grid_trade
 binance grid trade
 ## usage:
-1. prepare your config from config.tmp
+1. prepare your config by copy config.tmp
 2. ./run.py ${your_config_path}
 
 ## config description
