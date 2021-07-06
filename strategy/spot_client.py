@@ -1,6 +1,7 @@
 #! /usr/bin/python3
 import os
 from binance import Client, ThreadedWebsocketManager, ThreadedDepthCacheManager
+from binance.enums import HistoricalKlinesType
 import math
 import time
 import logging as logger
@@ -10,6 +11,9 @@ import signal
 class BNClient:
     def __init__(self, client):
         self._client = client
+
+    def trade_fee(self):
+        return 0.00075
 
     def get_cur_sell(self, symbol):
         depth = self._client.get_order_book(symbol=symbol)
@@ -61,6 +65,16 @@ class BNClient:
             timestamp = int(time.time()))
         return r
         
-    def xx(self):
+    def account_info(self):
         r = self._client.get_account()
         print(r)
+
+    def get_historical_klines(self, symbol, interval, start_str, end_str = None, limit = 500):
+        r = self._client.get_historical_klines(
+            symbol = symbol,
+            interval = interval,
+            start_str = start_str,
+            end_str = end_str,
+            limit = limit,
+            klines_type = HistoricalKlinesType.SPOT
+        )

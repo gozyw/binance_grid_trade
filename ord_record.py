@@ -2,6 +2,7 @@
 import os
 import sys
 from binance import Client, ThreadedWebsocketManager, ThreadedDepthCacheManager
+from binance.exceptions import BinanceAPIException
 import math
 import time
 import logging as logger
@@ -43,20 +44,10 @@ if __name__ == '__main__':
     api_key = config['api_key']
     api_secret = config['api_secret']
 
-    init_logger('run.log', level = logger.INFO)
+    init_logger('record.log', level = logger.INFO)
 
-    runners = []
-    for cfg in config['strategy']:
-        client = create_client(cfg['client_type'], api_key, api_secret)
-        if not client:
-            continue
-        strategy = create_strategy(client, cfg)
-        if not strategy:
-            continue
-        runners.append(strategy)
-    if not runners:
-        logger.info("no runner")
-        sys.exit(0)
+    client = create_client('spot', api_key, api_secret)
+
     global is_stop
     is_stop = False
 
@@ -66,31 +57,29 @@ if __name__ == '__main__':
     signal.signal(signal.SIGUSR2, signal_handler)    
 
     st = time.time()
-    gain_map = {}
+    coin_pair = ['ATAUSDT', 'BNBUSDT', 'ADAUSDT']
+    fh = {
+        'ATAUSDT': open('ata.record', 'a+'),
+        'BNBUSDT': open('bnb.record', 'a+'),
+        'ADAUSDT': open('ada.record', 'a+'),
+    }
+    last_buy = {}
+    last_sell = {}
     while not is_stop:
-        new_runners = []        
-        for runner in runners:
+        for cp in coin_pair:
             try:
-                runner.work_loop()
+                s = client.get_cur_sell(symbol=cp)
+                b = client.get_cur_buy(symbol=cp)
+                if s and b:
+                    if cp not in last_buy:
+                        last_buy[cp] = -1.0
+                        last_sell[cp] = -1.0
+                    if str(s[0]) != str(last_sell[cp]) or str(b[0]) != str(last_buy[cp]):
+                        fh[cp].write('%s %s %s\n' % (time.time(), s[0], b[0]))
+                        last_buy[cp], last_sell[cp] = b[0], s[0]
+                
             except Exception as e:
-                logger.exception(e)
-            if runner.run_target != 'quit':
-                new_runners.append(runner)
-        runners = new_runners
-        if time.time() - st > 10:
-            changed = False
-            for runner in runners:
-                if runner.strategy_id not in gain_map:
-                    gain_map[runner.strategy_id] = runner.get_total_gain()
-                    changed = True
-                else:
-                    if runner.get_total_gain() > gain_map[runner.strategy_id]:
-                        gain_map[runner.strategy_id] = runner.get_total_gain()
-                        changed = True
-            if changed:
-                logger.info("gain %s", gain_map)
-            st = time.time()
+                logger.error(e)
         time.sleep(1)
-    logger.info("gain %s", gain_map)    
-    logger.info("i'm exitted")    
-
+    for p in fh.values():
+        p.close()
