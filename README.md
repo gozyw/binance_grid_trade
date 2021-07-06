@@ -11,8 +11,10 @@ binance grid trade
 
 ## usage:
 ### how to build your strategy:
-1. prepare your config by copy config.tmp
-2. ./run.py ${your_config_path}
+1. install python-binance, git:https://github.com/sammchardy/python-binance
+2. prepare your config by copy config.tmp
+3. ./run.py ${your_config_path}
+
 ### how to exec your loopback testing:
 1.
 
