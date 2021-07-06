@@ -16,7 +16,10 @@ binance grid trade
 3. ./run.py ${your_config_path}
 
 ### how to exec your loopback testing:
-1.
+1. modify ord_record.py to record the market price in two place, coin_pain = xxx and fh = xxx
+2. run "./ord_record.py ${your_config_path}"
+3. now you get your coin pair market price record file xxx.record
+4. learn the usage of MockClient in mock_run.py and exec your loopback testing 
 
 ## config description
 ```
