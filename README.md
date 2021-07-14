@@ -1,6 +1,10 @@
 # binance_grid_trade
 binance grid trade
 ## Update Record:
+### v1.0.2 update
+1. support binance future trade pair
+2. aggregate the income by group
+3. shrink the client order id to avoid length exception
 ### v1.0.1 update
 1. support loopback testing
 2. reorder the order cancel by accident
@@ -28,6 +32,7 @@ binance grid trade
     "api_secret": "${your api secret}",
     "strategy": [{
         "strategy_id": "${your strategy unique id}",
+        "group": "{the group this strategy belong to}",        
         "low_bound": ${grid lower bound},
         "up_bound": ${grid upper bound},
         "total_cash": ${total base coin num},
@@ -40,7 +45,7 @@ binance grid trade
         "buy_greedy_x": ${default 1.0, buy price will multiple by it},
         "grid_mode": "${equal_percent or equal_delta}",
         "run_target": "${join or quit}",
-        "client_type" : "${spot only support spot now}",
+        "client_type" : "${spot or future}",
         "strategy_type" : "${grid_v1, only support this}"
         "cache_type" : "${mem or file, mem only use for loopback testing in mock_run}"
     }]

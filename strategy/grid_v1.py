@@ -13,9 +13,9 @@ from strategy.mem_cache import MemCache
 class GridRun:
     def __init__(self, client, config, verbose = True):
         self.order_sleep = 0.01
-        self.unique_order_id = 0
         self.verbose = verbose
         self.client = client
+        self.group = config.get('group', 'default')
         self.low_bound = config.get('low_bound')
         self.up_bound = config.get('up_bound')
         self.total_cash = config.get('total_cash')
@@ -82,6 +82,7 @@ class GridRun:
             logger.error("error remote order, delta: %s", rdl)
             raise Exception('error remote order')
         self.total_gain = self.load_total_gain()
+        self.unique_order_id = self.load_unique_order_id()        
 
     def get_total_gain(self):
         return self.total_gain
@@ -121,6 +122,15 @@ class GridRun:
         cr = self.get_local_cache()
         cr['total_gain'] = self.total_gain
         self.save_local_cache(cr)
+
+    def load_unique_order_id(self):
+        cr = self.get_local_cache()
+        return cr.get('unique_order_id', 0)
+
+    def save_unique_order_id(self):
+        cr = self.get_local_cache()
+        cr['unique_order_id'] = self.unique_order_id
+        self.save_local_cache(cr)
         
     def load_orders(self):
         cr = self.get_local_cache()
@@ -151,7 +161,8 @@ class GridRun:
     #    def create_limit_order(self, symbol, side, quantity, price, client_order_id, time_in_force = 'GTC'):
     def create_order(self, side, quantity, price, flag_id):
         qstr = str(quantity).split('.')
-        oid = '%s_%s_%s_%s_%s_%s' % (self.strategy_id, str(flag_id), qstr[0], qstr[1], str(int(time.time())) + str(self.unique_order_id), str(side))
+        tstr = str(int(time.time() / 3600)) + str(self.unique_order_id)
+        oid = '%s_%s_%s_%s_%s_%s' % (self.strategy_id, str(flag_id), qstr[0], qstr[1], tstr, str(side))
         self.unique_order_id += 1
         if self.verbose:
             logger.info('try to order %s %s %s %s %s', side, quantity, price, flag_id, oid)
@@ -278,6 +289,7 @@ class GridRun:
                 self.save_total_gain()
         self.last_open_orders = new_last_open_orders
         self.save_last_open_orders()
+        self.save_unique_order_id()        
         if len(self.load_orders()) == self.grid_num:
             return
         self.last_open_orders = self.load_orders()
@@ -314,6 +326,7 @@ class GridRun:
             self.last_open_orders.append(ret)
             time.sleep(self.order_sleep * 10)
         self.save_last_open_orders()
+        self.save_unique_order_id()
     
     def work_loop(self):
         if self.run_target == 'quit':

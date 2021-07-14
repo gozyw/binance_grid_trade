@@ -8,6 +8,7 @@ import logging as logger
 from strategy.logger import init_logger
 from strategy.grid_v1 import GridRun
 from strategy.spot_client import BNClient
+from strategy.future_client import BNFClient
 import json
 import signal
 
@@ -19,6 +20,8 @@ def signal_handler(sig_num, frame):
 def create_client(client_type, api_key, api_secret):
     if client_type == "spot":
         return BNClient(Client(api_key, api_secret))
+    if client_type == "future":
+        return BNFClient(Client(api_key, api_secret))
     else:
         logger.error("unsupport client type")
         return None
@@ -78,6 +81,7 @@ if __name__ == '__main__':
                 new_runners.append(runner)
         runners = new_runners
         if time.time() - st > 10:
+            group_gain = {}
             changed = False
             for runner in runners:
                 if runner.strategy_id not in gain_map:
@@ -87,8 +91,10 @@ if __name__ == '__main__':
                     if runner.get_total_gain() > gain_map[runner.strategy_id]:
                         gain_map[runner.strategy_id] = runner.get_total_gain()
                         changed = True
+                group_gain[runner.group] = group_gain.get(runner.group, 0) + runner.get_total_gain()
             if changed:
                 logger.info("gain %s", gain_map)
+                logger.info("group_income %s", group_gain)
             st = time.time()
         time.sleep(1)
     logger.info("gain %s", gain_map)    

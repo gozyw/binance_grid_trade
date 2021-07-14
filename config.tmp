@@ -3,6 +3,7 @@
     "api_secret": "your api secret",
     "strategy": [{
         "strategy_id": "test02",
+        "group": "ATA",
         "low_bound": 0.23,
         "up_bound": 0.3,
         "total_cash": 35,
