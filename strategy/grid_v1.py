@@ -143,7 +143,7 @@ class GridRun:
 
     def get_open_orders(self):
         orders = self.client.get_all_open_orders(self.trade_symbol)
-        ret = [ord for ord in orders if ord['clientOrderId'].startswith(self.strategy_id)]
+        ret = [ord for ord in orders if ord['clientOrderId'].startswith(self.strategy_id + "_")]
         return ret
     
     def get_cur_balance(self):
